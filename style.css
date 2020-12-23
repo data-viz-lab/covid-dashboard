@@ -1,0 +1,40 @@
+* {
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+}
+
+.viz {
+  width: calc(100% - 4px);
+  height: 100%;
+  display: grid;
+  grid-gap: 1px;
+  grid-template-rows: repeat(12, 100px);
+  grid-template-columns: repeat(10, 1fr);
+  grid-auto-flow: row;
+  background-color: #fff;
+  margin: 2px;
+}
+
+.viz__wrapper {
+  color: #fff;
+  background-color: #1e1e1e;
+}
+
+.viz__title {
+  font-size: 11px;
+  height: 20px;
+}
+
+.viz__item {
+  height: calc(100% - 31px);
+}
+
+.viz__item text {
+  fill: #fff;
+}
