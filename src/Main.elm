@@ -51,7 +51,8 @@ type alias Data =
 
 
 type alias Model =
-    { data : Data
+    { data : Dict String Data
+    , domain : ( Float, Float )
     , dimensions : Result Decode.Error Dimensions
     , serverData : WebData String
     }
@@ -77,6 +78,8 @@ update msg model =
             ( { model
                 | data = data
                 , serverData = response
+
+                --, domain = getDomain data
               }
             , observeDimensions "viz__item"
             )
@@ -104,34 +107,54 @@ decodeDimensions value =
 -- VIEW
 
 
+footer : Html msg
+footer =
+    Html.footer
+        [ style "margin" "25px"
+        ]
+        [ Html.a
+            [ Html.Attributes.href
+                "https://github.com/owid/covid-19-data/tree/master/public/data"
+            , style "color" "#fff"
+            ]
+            [ Html.text "Data source" ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     case model.serverData of
         RemoteData.Success _ ->
-            Html.div [ class "viz" ] (charts model)
+            let
+                countries =
+                    model.data
+                        |> Dict.keys
+            in
+            Html.div [ class "wrapper" ]
+                [ Html.header [ class "header" ]
+                    [ Html.h1 [] [ Html.text "Coronavirus, new deaths per million" ]
+                    ]
+                , Html.div
+                    [ class "viz" ]
+                    (charts countries model)
+                , footer
+                ]
 
         RemoteData.Loading ->
-            Html.div [ class "pre-chart" ] [ Html.text "Loading data..." ]
+            Html.div [ class "pre-chart" ] [ Html.text "Please have patience, loading a big dataset..." ]
 
         _ ->
             Html.div [ class "pre-chart" ] [ Html.text "Something went wrong" ]
 
 
-charts : Model -> List (Html Msg)
-charts model =
-    let
-        countries =
-            model.data
-                |> List.map .country
-                |> Set.fromList
-                |> Set.toList
-    in
+charts : List String -> Model -> List (Html Msg)
+charts countries model =
     countries
         |> List.map
-            (\location ->
+            (\country ->
                 Html.div [ class "viz__wrapper" ]
-                    [ Html.div [ class "viz__title" ] [ Html.h2 [] [ Html.text location ] ]
-                    , Html.div [ class "viz__item" ] [ chart location model ]
+                    [ Html.div [ class "viz__title" ] [ Html.h2 [] [ Html.text country ] ]
+                    , Html.div [ class "viz__item" ] [ chart country model ]
                     ]
             )
 
@@ -172,7 +195,7 @@ xAxis =
 
 
 chart : String -> Model -> Html msg
-chart location model =
+chart country model =
     let
         { width, height } =
             model.dimensions
@@ -183,7 +206,8 @@ chart location model =
 
         data =
             model.data
-                |> List.filter (\d -> d.country == location)
+                |> Dict.get country
+                |> Maybe.withDefault []
     in
     Line.init
         { margin = { top = 10, right = 10, bottom = 10, left = 10 }
@@ -194,7 +218,7 @@ chart location model =
         |> Line.withStackedLayout (Line.drawArea Shape.stackOffsetSilhouette)
         |> Line.withColorPalette [ color ]
         |> Line.hideAxis
-        |> Line.withXContinuousDomain ( 0, 145 )
+        |> Line.withYDomain ( -10, 10 )
         |> Line.render ( data, accessor )
 
 
@@ -208,23 +232,6 @@ fetchData =
         { url = "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv"
         , expect = Http.expectString (RemoteData.fromResult >> DataResponse)
         }
-
-
-locations : List String
-locations =
-    [ "United States"
-    , "United Kingdom"
-    , "Italy"
-    , "Germany"
-    , "Belgium"
-    , "Brazil"
-    , "France"
-    , "Sweden"
-    , "India"
-    , "China"
-    , "Spain"
-    , "Russia"
-    ]
 
 
 countryIdx : Int
@@ -245,7 +252,7 @@ valueIdx =
     15
 
 
-prepareData : WebData String -> Data
+prepareData : WebData String -> Dict String Data
 prepareData rd =
     rd
         |> RemoteData.map
@@ -255,16 +262,8 @@ prepareData rd =
                         Csv.parse str
                 in
                 csv.records
-                    |> Array.fromList
-                    |> Array.map Array.fromList
-                    --|> Array.filter
-                    --    (\r ->
-                    --        r
-                    --            |> Array.get countryIdx
-                    --            |> Maybe.map (\location -> List.member location locations)
-                    --            |> Maybe.withDefault False
-                    --    )
-                    |> Array.map
+                    |> List.map Array.fromList
+                    |> List.map
                         (\r ->
                             { date =
                                 Array.get dateIdx r
@@ -280,11 +279,11 @@ prepareData rd =
                                     |> Maybe.withDefault 0
                             }
                         )
-                    |> Array.foldl
+                    |> List.foldl
                         (\r acc ->
                             let
                                 k =
-                                    r.date |> Time.posixToMillis
+                                    r.country
                             in
                             case Dict.get k acc of
                                 Just v ->
@@ -294,13 +293,22 @@ prepareData rd =
                                     Dict.insert k [ r ] acc
                         )
                         Dict.empty
-                    -- only keep data shared across all countries
-                    --|> Dict.filter (\k v -> List.length v == List.length locations)
-                    |> Dict.toList
-                    |> List.map Tuple.second
-                    |> List.concat
+                    -- only keep countries with extensive data
+                    |> Dict.filter (\k v -> List.length v > 200)
             )
-        |> RemoteData.withDefault []
+        |> RemoteData.withDefault Dict.empty
+
+
+getDomain : Dict String Data -> ( Float, Float )
+getDomain data =
+    data
+        |> Dict.toList
+        |> List.map Tuple.second
+        |> List.concat
+        |> List.map .value
+        |> List.maximum
+        |> Maybe.withDefault 1
+        |> (\max -> ( max * -1, max ))
 
 
 
@@ -318,9 +326,10 @@ subscriptions _ =
 
 init : () -> ( Model, Cmd Msg )
 init () =
-    ( { data = []
+    ( { data = Dict.empty
       , dimensions = Result.Ok { height = 0, width = 0 }
       , serverData = RemoteData.Loading
+      , domain = ( 0, 0 )
       }
     , fetchData
     )

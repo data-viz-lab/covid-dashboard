@@ -7,18 +7,39 @@
 body {
   width: 100%;
   height: 100%;
+  color: #fff;
+  background-color: #1e1e1e;
+}
+
+h1 {
+  padding: 5px;
+}
+
+h2 {
+  padding: 2px;
+}
+
+.wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.header {
+  height: 40px;
+  color: #fff;
+  background-color: #1e1e1e;
 }
 
 .viz {
   width: calc(100% - 4px);
-  height: 100%;
+  height: calc(100% - 40px);
   display: grid;
   grid-gap: 1px;
   grid-template-rows: repeat(12, 100px);
   grid-template-columns: repeat(10, 1fr);
   grid-auto-flow: row;
   background-color: #fff;
-  margin: 2px;
+  border: 1px solid #fff;
 }
 
 .viz__wrapper {
@@ -27,8 +48,9 @@ body {
 }
 
 .viz__title {
-  font-size: 11px;
+  font-size: 12px;
   height: 20px;
+  margin: 2px;
 }
 
 .viz__item {
