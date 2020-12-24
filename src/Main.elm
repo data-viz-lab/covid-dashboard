@@ -118,6 +118,13 @@ footer =
             , style "color" "#fff"
             ]
             [ Html.text "Data source" ]
+        , Html.text ", "
+        , Html.a
+            [ Html.Attributes.href
+                "https://github.com/data-viz-lab/covid-dashboard"
+            , style "color" "#fff"
+            ]
+            [ Html.text "Source code" ]
         ]
 
 

@@ -14648,6 +14648,18 @@ var $author$project$Main$footer = A2(
 			_List_fromArray(
 				[
 					$elm$html$Html$text('Data source')
+				])),
+			$elm$html$Html$text(', '),
+			A2(
+			$elm$html$Html$a,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$href('https://github.com/data-viz-lab/covid-dashboard'),
+					A2($elm$html$Html$Attributes$style, 'color', '#fff')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('Source code')
 				]))
 		]));
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
