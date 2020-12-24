@@ -6336,6 +6336,62 @@ var $author$project$Main$decodeDimensions = function (value) {
 				])),
 		value);
 };
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$List$maximum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(
+			A3($elm$core$List$foldl, $elm$core$Basics$max, x, xs));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Main$getDomain = function (data) {
+	return function (max) {
+		return _Utils_Tuple2((max / 2) * (-1), max / 2);
+	}(
+		A2(
+			$elm$core$Maybe$withDefault,
+			1,
+			$elm$core$List$maximum(
+				A2(
+					$elm$core$List$map,
+					function ($) {
+						return $.value;
+					},
+					$elm$core$List$concat(
+						A2(
+							$elm$core$List$map,
+							$elm$core$Tuple$second,
+							$elm$core$Dict$toList(data)))))));
+};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$json$Json$Encode$string = _Json_wrap;
@@ -6351,6 +6407,8 @@ var $elm$core$Maybe$andThen = F2(
 	});
 var $author$project$Main$countryIdx = 2;
 var $author$project$Main$dateIdx = 3;
+var $author$project$Main$exclude = _List_fromArray(
+	['Bolivia', 'Ecuador', 'Peru', 'San Marino', 'Liechtenstein', 'International']);
 var $elm$core$Dict$foldl = F3(
 	function (func, acc, dict) {
 		foldl:
@@ -6481,10 +6539,41 @@ var $krisajenkins$remotedata$RemoteData$map = F2(
 				return $krisajenkins$remotedata$RemoteData$Failure(error);
 		}
 	});
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
 var $elm$time$Time$Posix = function (a) {
 	return {$: 'Posix', a: a};
 };
 var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $elm$core$Basics$not = _Basics_not;
 var $elm$core$List$drop = F2(
 	function (n, list) {
 		drop:
@@ -6532,7 +6621,6 @@ var $elm$core$List$filter = F2(
 			list);
 	});
 var $elm$core$String$lines = _String_lines;
-var $elm$core$Basics$not = _Basics_not;
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$List$tail = function (list) {
 	if (list.b) {
@@ -6543,15 +6631,6 @@ var $elm$core$List$tail = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var $lovasoa$elm_csv$Helper$parseRemaining = F5(
 	function (separator, quoted, startOfLine, remaining, result) {
 		parseRemaining:
@@ -6717,9 +6796,6 @@ var $elm$parser$Parser$Advanced$end = function (x) {
 };
 var $elm$parser$Parser$end = $elm$parser$Parser$Advanced$end($elm$parser$Parser$ExpectingEnd);
 var $elm$parser$Parser$Advanced$isSubChar = _Parser_isSubChar;
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var $elm$parser$Parser$Advanced$chompWhileHelp = F5(
 	function (isGood, offset, row, col, s0) {
 		chompWhileHelp:
@@ -7436,7 +7512,7 @@ var $author$project$Main$prepareData = function (rd) {
 					$elm$core$Dict$filter,
 					F2(
 						function (k, v) {
-							return $elm$core$List$length(v) > 200;
+							return !(($elm$core$List$length(v) > 200) && A2($elm$core$List$member, k, $author$project$Main$exclude));
 						}),
 					A3(
 						$elm$core$List$foldl,
@@ -7498,7 +7574,11 @@ var $author$project$Main$update = F2(
 			return _Utils_Tuple2(
 				_Utils_update(
 					model,
-					{data: data, serverData: response}),
+					{
+						data: data,
+						domain: $author$project$Main$getDomain(data),
+						serverData: response
+					}),
 				$author$project$Main$observeDimensions('viz__item'));
 		} else {
 			var response = msg.a;
@@ -8101,10 +8181,6 @@ var $elm_community$list_extra$List$Extra$groupWhile = F2(
 			_List_Nil,
 			items);
 	});
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
 var $elm$core$List$sortBy = _List_sortBy;
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$externalToDataContinuousGroup = F2(
 	function (externalData, accessorGroup) {
@@ -9799,17 +9875,6 @@ var $data_viz_lab$elm_chart_builder$Chart$Internal$Helpers$mergeStyles = F2(
 var $elm_community$typed_svg$TypedSvg$Attributes$style = function (value) {
 	return A2($elm_community$typed_svg$TypedSvg$Core$attribute, 'style', value);
 };
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$showIcons = function (_v0) {
 	var c = _v0.a;
 	return function (l) {
@@ -10142,16 +10207,6 @@ var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromDomainContinuous = f
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$getDomainContinuous = function (config) {
 	return $data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromDomainContinuous(
 		$data_viz_lab$elm_chart_builder$Chart$Internal$Type$fromConfig(config).domainContinuous);
-};
-var $elm$core$List$maximum = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(
-			A3($elm$core$List$foldl, $elm$core$Basics$max, x, xs));
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
 };
 var $elm$core$Basics$min = F2(
 	function (x, y) {
@@ -11173,27 +11228,6 @@ var $data_viz_lab$elm_chart_builder$Chart$Internal$TableHelpers$getLabelsFromCon
 			['x', 'y']);
 	}
 };
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
 var $elm$core$List$all = F2(
 	function (isOkay, list) {
 		return !A2(
@@ -14558,7 +14592,7 @@ var $author$project$Main$chart = F2(
 			_Utils_Tuple2(data, $author$project$Main$accessor),
 			A2(
 				$data_viz_lab$elm_chart_builder$Chart$Line$withYDomain,
-				_Utils_Tuple2(-10, 10),
+				model.domain,
 				$data_viz_lab$elm_chart_builder$Chart$Line$hideAxis(
 					A2(
 						$data_viz_lab$elm_chart_builder$Chart$Line$withColorPalette,
@@ -14573,7 +14607,7 @@ var $author$project$Main$chart = F2(
 								$data_viz_lab$elm_chart_builder$Chart$Line$init(
 									{
 										height: height,
-										margin: {bottom: 10, left: 10, right: 10, top: 10},
+										margin: {bottom: 2, left: 2, right: 2, top: 2},
 										width: width
 									})))))));
 	});
@@ -14711,7 +14745,7 @@ var $author$project$Main$view = function (model) {
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Please have patience, loading a big dataset...')
+						$elm$html$Html$text('Loading a big dataset... this might take a while...')
 					]));
 		default:
 			return A2(

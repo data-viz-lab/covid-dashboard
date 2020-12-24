@@ -78,8 +78,7 @@ update msg model =
             ( { model
                 | data = data
                 , serverData = response
-
-                --, domain = getDomain data
+                , domain = getDomain data
               }
             , observeDimensions "viz__item"
             )
@@ -148,7 +147,9 @@ view model =
                 ]
 
         RemoteData.Loading ->
-            Html.div [ class "pre-chart" ] [ Html.text "Please have patience, loading a big dataset..." ]
+            Html.div [ class "pre-chart" ]
+                [ Html.text "Loading a big dataset... this might take a while..."
+                ]
 
         _ ->
             Html.div [ class "pre-chart" ] [ Html.text "Something went wrong" ]
@@ -217,7 +218,7 @@ chart country model =
                 |> Maybe.withDefault []
     in
     Line.init
-        { margin = { top = 10, right = 10, bottom = 10, left = 10 }
+        { margin = { top = 2, right = 2, bottom = 2, left = 2 }
         , width = width
         , height = height
         }
@@ -225,7 +226,8 @@ chart country model =
         |> Line.withStackedLayout (Line.drawArea Shape.stackOffsetSilhouette)
         |> Line.withColorPalette [ color ]
         |> Line.hideAxis
-        |> Line.withYDomain ( -10, 10 )
+        --|> Line.withYDomain ( -10, 10 )
+        |> Line.withYDomain model.domain
         |> Line.render ( data, accessor )
 
 
@@ -257,6 +259,12 @@ valueIdx =
     --9
     -- new_deaths_smoothed_per_million
     15
+
+
+exclude : List String
+exclude =
+    -- data outliers
+    [ "Bolivia", "Ecuador", "Peru", "San Marino", "Liechtenstein", "International" ]
 
 
 prepareData : WebData String -> Dict String Data
@@ -301,7 +309,7 @@ prepareData rd =
                         )
                         Dict.empty
                     -- only keep countries with extensive data
-                    |> Dict.filter (\k v -> List.length v > 200)
+                    |> Dict.filter (\k v -> List.length v > 200 && List.member k exclude |> not)
             )
         |> RemoteData.withDefault Dict.empty
 
@@ -315,7 +323,7 @@ getDomain data =
         |> List.map .value
         |> List.maximum
         |> Maybe.withDefault 1
-        |> (\max -> ( max * -1, max ))
+        |> (\max -> ( (max / 2) * -1, max / 2 ))
 
 
 
