@@ -12,6 +12,7 @@ import FormatNumber
 import FormatNumber.Locales exposing (usLocale)
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
+import Html.Events
 import Http
 import Iso8601
 import Json.Decode as Decode
@@ -35,6 +36,45 @@ port updateDimensions : (Decode.Value -> msg) -> Sub msg
 -- MODEL
 
 
+type SortMode
+    = Alphabetical
+    | ByDeathsAsc
+    | ByDeathsDesc
+
+
+stringToSortMode : String -> SortMode
+stringToSortMode str =
+    case str of
+        "alphabetical" ->
+            Alphabetical
+
+        "byDeathsAsc" ->
+            ByDeathsAsc
+
+        "byDeathsDesc" ->
+            ByDeathsDesc
+
+        _ ->
+            Alphabetical
+
+
+sortModeToString : SortMode -> String
+sortModeToString sortMode =
+    case sortMode of
+        Alphabetical ->
+            "alphabetical"
+
+        ByDeathsAsc ->
+            "byDeathsAsc"
+
+        ByDeathsDesc ->
+            "byDeathsDesc"
+
+
+type alias Stats =
+    { totalDeaths : Float }
+
+
 type alias Dimensions =
     { width : Float, height : Float }
 
@@ -51,10 +91,11 @@ type alias Data =
 
 
 type alias Model =
-    { data : Dict String Data
-    , domain : ( Float, Float )
+    { data : Dict String ( Data, Stats )
     , dimensions : Result Decode.Error Dimensions
+    , domain : ( Float, Float )
     , serverData : WebData String
+    , sortMode : SortMode
     }
 
 
@@ -64,6 +105,7 @@ type alias Model =
 
 type Msg
     = DataResponse (WebData String)
+    | OnSortByUpdate String
     | OnUpdateDimensions Decode.Value
 
 
@@ -86,6 +128,9 @@ update msg model =
         OnUpdateDimensions response ->
             ( { model | dimensions = decodeDimensions response }, Cmd.none )
 
+        OnSortByUpdate sortMode ->
+            ( { model | sortMode = stringToSortMode sortMode }, Cmd.none )
+
 
 decodeDimensions : Decode.Value -> Result Decode.Error Dimensions
 decodeDimensions value =
@@ -104,6 +149,39 @@ decodeDimensions value =
 
 
 -- VIEW
+
+
+sortByView : Model -> Html Msg
+sortByView model =
+    Html.select [ Html.Events.onInput OnSortByUpdate ]
+        [ Html.option
+            [ Html.Attributes.value (sortModeToString Alphabetical)
+            , Html.Attributes.selected (model.sortMode == Alphabetical)
+            ]
+            [ Html.text (sortModeToString Alphabetical) ]
+        , Html.option
+            [ Html.Attributes.value (sortModeToString ByDeathsAsc)
+            , Html.Attributes.selected (model.sortMode == ByDeathsAsc)
+            ]
+            [ Html.text "By deaths ascending" ]
+        , Html.option
+            [ Html.Attributes.value (sortModeToString ByDeathsDesc)
+            , Html.Attributes.selected (model.sortMode == ByDeathsDesc)
+            ]
+            [ Html.text "By deaths descending" ]
+        ]
+
+
+charts : Model -> List (Html Msg)
+charts model =
+    sortedCountries model
+        |> List.map
+            (\country ->
+                Html.div [ class "viz__wrapper" ]
+                    [ Html.div [ class "viz__title" ] [ Html.h2 [] [ Html.text country ] ]
+                    , Html.div [ class "viz__item" ] [ chart country model ]
+                    ]
+            )
 
 
 footer : Html msg
@@ -127,22 +205,43 @@ footer =
         ]
 
 
+sortedCountries : Model -> List String
+sortedCountries model =
+    model.data
+        |> Dict.map (\k ( d, s ) -> s.totalDeaths)
+        |> Dict.toList
+        |> (\d ->
+                case model.sortMode of
+                    Alphabetical ->
+                        d
+                            |> List.sortBy Tuple.first
+                            |> List.map Tuple.first
+
+                    ByDeathsAsc ->
+                        d
+                            |> List.sortBy Tuple.second
+                            |> List.map Tuple.first
+
+                    ByDeathsDesc ->
+                        d
+                            |> List.sortBy Tuple.second
+                            |> List.map Tuple.first
+                            |> List.reverse
+           )
+
+
 view : Model -> Html Msg
 view model =
     case model.serverData of
         RemoteData.Success _ ->
-            let
-                countries =
-                    model.data
-                        |> Dict.keys
-            in
             Html.div [ class "wrapper" ]
                 [ Html.header [ class "header" ]
                     [ Html.h1 [] [ Html.text "Coronavirus, new deaths per million" ]
+                    , sortByView model
                     ]
                 , Html.div
                     [ class "viz" ]
-                    (charts countries model)
+                    (charts model)
                 , footer
                 ]
 
@@ -153,18 +252,6 @@ view model =
 
         _ ->
             Html.div [ class "pre-chart" ] [ Html.text "Something went wrong" ]
-
-
-charts : List String -> Model -> List (Html Msg)
-charts countries model =
-    countries
-        |> List.map
-            (\country ->
-                Html.div [ class "viz__wrapper" ]
-                    [ Html.div [ class "viz__title" ] [ Html.h2 [] [ Html.text country ] ]
-                    , Html.div [ class "viz__item" ] [ chart country model ]
-                    ]
-            )
 
 
 
@@ -215,7 +302,8 @@ chart country model =
         data =
             model.data
                 |> Dict.get country
-                |> Maybe.withDefault []
+                |> Maybe.withDefault ( [], { totalDeaths = 0 } )
+                |> Tuple.first
     in
     Line.init
         { margin = { top = 2, right = 2, bottom = 2, left = 2 }
@@ -267,7 +355,7 @@ exclude =
     [ "Bolivia", "Ecuador", "Peru", "San Marino", "Liechtenstein", "International" ]
 
 
-prepareData : WebData String -> Dict String Data
+prepareData : WebData String -> Dict String ( Data, Stats )
 prepareData rd =
     rd
         |> RemoteData.map
@@ -301,22 +389,31 @@ prepareData rd =
                                     r.country
                             in
                             case Dict.get k acc of
-                                Just v ->
-                                    Dict.insert k (r :: v) acc
+                                Just ( d, s ) ->
+                                    Dict.insert k ( r :: d, { totalDeaths = maxDeaths (r :: d) } ) acc
 
                                 Nothing ->
-                                    Dict.insert k [ r ] acc
+                                    Dict.insert k ( [ r ], { totalDeaths = 0 } ) acc
                         )
                         Dict.empty
                     -- only keep countries with extensive data
-                    |> Dict.filter (\k v -> List.length v > 200 && List.member k exclude |> not)
+                    |> Dict.filter (\k ( v, s ) -> List.length v > 200 && List.member k exclude |> not)
             )
         |> RemoteData.withDefault Dict.empty
 
 
-getDomain : Dict String Data -> ( Float, Float )
+maxDeaths : List { a | value : Float } -> Float
+maxDeaths country =
+    country
+        |> List.map .value
+        |> List.maximum
+        |> Maybe.withDefault 0
+
+
+getDomain : Dict String ( Data, Stats ) -> ( Float, Float )
 getDomain data =
     data
+        |> Dict.map (\k v -> Tuple.first v)
         |> Dict.toList
         |> List.map Tuple.second
         |> List.concat
@@ -343,8 +440,9 @@ init : () -> ( Model, Cmd Msg )
 init () =
     ( { data = Dict.empty
       , dimensions = Result.Ok { height = 0, width = 0 }
-      , serverData = RemoteData.Loading
       , domain = ( 0, 0 )
+      , serverData = RemoteData.Loading
+      , sortMode = Alphabetical
       }
     , fetchData
     )
@@ -357,7 +455,7 @@ init () =
 main =
     Browser.element
         { init = init
-        , view = view
-        , update = update
         , subscriptions = subscriptions
+        , update = update
+        , view = view
         }

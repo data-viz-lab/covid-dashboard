@@ -5486,6 +5486,7 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
+var $author$project$Main$Alphabetical = {$: 'Alphabetical'};
 var $krisajenkins$remotedata$RemoteData$Loading = {$: 'Loading'};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
@@ -6297,7 +6298,8 @@ var $author$project$Main$init = function (_v0) {
 			dimensions: $elm$core$Result$Ok(
 				{height: 0, width: 0}),
 			domain: _Utils_Tuple2(0, 0),
-			serverData: $krisajenkins$remotedata$RemoteData$Loading
+			serverData: $krisajenkins$remotedata$RemoteData$Loading,
+			sortMode: $author$project$Main$Alphabetical
 		},
 		$author$project$Main$fetchData);
 };
@@ -6347,6 +6349,25 @@ var $elm$core$List$append = F2(
 var $elm$core$List$concat = function (lists) {
 	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
 };
+var $elm$core$Dict$map = F2(
+	function (func, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				A2(func, key, value),
+				A2($elm$core$Dict$map, func, left),
+				A2($elm$core$Dict$map, func, right));
+		}
+	});
 var $elm$core$List$maximum = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -6390,7 +6411,14 @@ var $author$project$Main$getDomain = function (data) {
 						A2(
 							$elm$core$List$map,
 							$elm$core$Tuple$second,
-							$elm$core$Dict$toList(data)))))));
+							$elm$core$Dict$toList(
+								A2(
+									$elm$core$Dict$map,
+									F2(
+										function (k, v) {
+											return v.a;
+										}),
+									data))))))));
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
@@ -6539,6 +6567,18 @@ var $krisajenkins$remotedata$RemoteData$map = F2(
 				return $krisajenkins$remotedata$RemoteData$Failure(error);
 		}
 	});
+var $author$project$Main$maxDeaths = function (country) {
+	return A2(
+		$elm$core$Maybe$withDefault,
+		0,
+		$elm$core$List$maximum(
+			A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.value;
+				},
+				country)));
+};
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -7511,7 +7551,9 @@ var $author$project$Main$prepareData = function (rd) {
 				return A2(
 					$elm$core$Dict$filter,
 					F2(
-						function (k, v) {
+						function (k, _v2) {
+							var v = _v2.a;
+							var s = _v2.b;
 							return !(($elm$core$List$length(v) > 200) && A2($elm$core$List$member, k, $author$project$Main$exclude));
 						}),
 					A3(
@@ -7521,18 +7563,27 @@ var $author$project$Main$prepareData = function (rd) {
 								var k = r.country;
 								var _v0 = A2($elm$core$Dict$get, k, acc);
 								if (_v0.$ === 'Just') {
-									var v = _v0.a;
+									var _v1 = _v0.a;
+									var d = _v1.a;
+									var s = _v1.b;
 									return A3(
 										$elm$core$Dict$insert,
 										k,
-										A2($elm$core$List$cons, r, v),
+										_Utils_Tuple2(
+											A2($elm$core$List$cons, r, d),
+											{
+												totalDeaths: $author$project$Main$maxDeaths(
+													A2($elm$core$List$cons, r, d))
+											}),
 										acc);
 								} else {
 									return A3(
 										$elm$core$Dict$insert,
 										k,
-										_List_fromArray(
-											[r]),
+										_Utils_Tuple2(
+											_List_fromArray(
+												[r]),
+											{totalDeaths: 0}),
 										acc);
 								}
 							}),
@@ -7566,29 +7617,53 @@ var $author$project$Main$prepareData = function (rd) {
 			},
 			rd));
 };
+var $author$project$Main$ByDeathsAsc = {$: 'ByDeathsAsc'};
+var $author$project$Main$ByDeathsDesc = {$: 'ByDeathsDesc'};
+var $author$project$Main$stringToSortMode = function (str) {
+	switch (str) {
+		case 'alphabetical':
+			return $author$project$Main$Alphabetical;
+		case 'byDeathsAsc':
+			return $author$project$Main$ByDeathsAsc;
+		case 'byDeathsDesc':
+			return $author$project$Main$ByDeathsDesc;
+		default:
+			return $author$project$Main$Alphabetical;
+	}
+};
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'DataResponse') {
-			var response = msg.a;
-			var data = $author$project$Main$prepareData(response);
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						data: data,
-						domain: $author$project$Main$getDomain(data),
-						serverData: response
-					}),
-				$author$project$Main$observeDimensions('viz__item'));
-		} else {
-			var response = msg.a;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						dimensions: $author$project$Main$decodeDimensions(response)
-					}),
-				$elm$core$Platform$Cmd$none);
+		switch (msg.$) {
+			case 'DataResponse':
+				var response = msg.a;
+				var data = $author$project$Main$prepareData(response);
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							data: data,
+							domain: $author$project$Main$getDomain(data),
+							serverData: response
+						}),
+					$author$project$Main$observeDimensions('viz__item'));
+			case 'OnUpdateDimensions':
+				var response = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							dimensions: $author$project$Main$decodeDimensions(response)
+						}),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var sortMode = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							sortMode: $author$project$Main$stringToSortMode(sortMode)
+						}),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
 var $data_viz_lab$elm_chart_builder$Chart$Line$AccessorTime = F3(
@@ -14578,8 +14653,10 @@ var $author$project$Main$chart = F2(
 	function (country, model) {
 		var data = A2(
 			$elm$core$Maybe$withDefault,
-			_List_Nil,
-			A2($elm$core$Dict$get, country, model.data));
+			_Utils_Tuple2(
+				_List_Nil,
+				{totalDeaths: 0}),
+			A2($elm$core$Dict$get, country, model.data)).a;
 		var color = A3($avh4$elm_color$Color$rgb255, 240, 59, 32);
 		var _v0 = A2(
 			$elm$core$Result$withDefault,
@@ -14613,49 +14690,81 @@ var $author$project$Main$chart = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
-var $author$project$Main$charts = F2(
-	function (countries, model) {
-		return A2(
-			$elm$core$List$map,
-			function (country) {
+var $author$project$Main$sortedCountries = function (model) {
+	return function (d) {
+		var _v1 = model.sortMode;
+		switch (_v1.$) {
+			case 'Alphabetical':
 				return A2(
-					$elm$html$Html$div,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$class('viz__wrapper')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							_List_fromArray(
-								[
-									$elm$html$Html$Attributes$class('viz__title')
-								]),
-							_List_fromArray(
-								[
-									A2(
-									$elm$html$Html$h2,
-									_List_Nil,
-									_List_fromArray(
-										[
-											$elm$html$Html$text(country)
-										]))
-								])),
-							A2(
-							$elm$html$Html$div,
-							_List_fromArray(
-								[
-									$elm$html$Html$Attributes$class('viz__item')
-								]),
-							_List_fromArray(
-								[
-									A2($author$project$Main$chart, country, model)
-								]))
-						]));
-			},
-			countries);
-	});
+					$elm$core$List$map,
+					$elm$core$Tuple$first,
+					A2($elm$core$List$sortBy, $elm$core$Tuple$first, d));
+			case 'ByDeathsAsc':
+				return A2(
+					$elm$core$List$map,
+					$elm$core$Tuple$first,
+					A2($elm$core$List$sortBy, $elm$core$Tuple$second, d));
+			default:
+				return $elm$core$List$reverse(
+					A2(
+						$elm$core$List$map,
+						$elm$core$Tuple$first,
+						A2($elm$core$List$sortBy, $elm$core$Tuple$second, d)));
+		}
+	}(
+		$elm$core$Dict$toList(
+			A2(
+				$elm$core$Dict$map,
+				F2(
+					function (k, _v0) {
+						var d = _v0.a;
+						var s = _v0.b;
+						return s.totalDeaths;
+					}),
+				model.data)));
+};
+var $author$project$Main$charts = function (model) {
+	return A2(
+		$elm$core$List$map,
+		function (country) {
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('viz__wrapper')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('viz__title')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$h2,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text(country)
+									]))
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('viz__item')
+							]),
+						_List_fromArray(
+							[
+								A2($author$project$Main$chart, country, model)
+							]))
+					]));
+		},
+		$author$project$Main$sortedCountries(model));
+};
 var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$html$Html$footer = _VirtualDom_node('footer');
 var $elm$html$Html$Attributes$href = function (url) {
@@ -14698,11 +14807,111 @@ var $author$project$Main$footer = A2(
 		]));
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$header = _VirtualDom_node('header');
+var $author$project$Main$OnSortByUpdate = function (a) {
+	return {$: 'OnSortByUpdate', a: a};
+};
+var $elm$html$Html$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
+};
+var $elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 'MayStopPropagation', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
+	});
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $elm$html$Html$Events$targetValue = A2(
+	$elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'value']),
+	$elm$json$Json$Decode$string);
+var $elm$html$Html$Events$onInput = function (tagger) {
+	return A2(
+		$elm$html$Html$Events$stopPropagationOn,
+		'input',
+		A2(
+			$elm$json$Json$Decode$map,
+			$elm$html$Html$Events$alwaysStop,
+			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
+};
+var $elm$html$Html$option = _VirtualDom_node('option');
+var $elm$html$Html$select = _VirtualDom_node('select');
+var $elm$html$Html$Attributes$selected = $elm$html$Html$Attributes$boolProperty('selected');
+var $author$project$Main$sortModeToString = function (sortMode) {
+	switch (sortMode.$) {
+		case 'Alphabetical':
+			return 'alphabetical';
+		case 'ByDeathsAsc':
+			return 'byDeathsAsc';
+		default:
+			return 'byDeathsDesc';
+	}
+};
+var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $author$project$Main$sortByView = function (model) {
+	return A2(
+		$elm$html$Html$select,
+		_List_fromArray(
+			[
+				$elm$html$Html$Events$onInput($author$project$Main$OnSortByUpdate)
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$option,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$value(
+						$author$project$Main$sortModeToString($author$project$Main$Alphabetical)),
+						$elm$html$Html$Attributes$selected(
+						_Utils_eq(model.sortMode, $author$project$Main$Alphabetical))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						$author$project$Main$sortModeToString($author$project$Main$Alphabetical))
+					])),
+				A2(
+				$elm$html$Html$option,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$value(
+						$author$project$Main$sortModeToString($author$project$Main$ByDeathsAsc)),
+						$elm$html$Html$Attributes$selected(
+						_Utils_eq(model.sortMode, $author$project$Main$ByDeathsAsc))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('By deaths ascending')
+					])),
+				A2(
+				$elm$html$Html$option,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$value(
+						$author$project$Main$sortModeToString($author$project$Main$ByDeathsDesc)),
+						$elm$html$Html$Attributes$selected(
+						_Utils_eq(model.sortMode, $author$project$Main$ByDeathsDesc))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('By deaths descending')
+					]))
+			]));
+};
 var $author$project$Main$view = function (model) {
 	var _v0 = model.serverData;
 	switch (_v0.$) {
 		case 'Success':
-			var countries = $elm$core$Dict$keys(model.data);
 			return A2(
 				$elm$html$Html$div,
 				_List_fromArray(
@@ -14725,7 +14934,8 @@ var $author$project$Main$view = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$text('Coronavirus, new deaths per million')
-									]))
+									])),
+								$author$project$Main$sortByView(model)
 							])),
 						A2(
 						$elm$html$Html$div,
@@ -14733,7 +14943,7 @@ var $author$project$Main$view = function (model) {
 							[
 								$elm$html$Html$Attributes$class('viz')
 							]),
-						A2($author$project$Main$charts, countries, model)),
+						$author$project$Main$charts(model)),
 						$author$project$Main$footer
 					]));
 		case 'Loading':
