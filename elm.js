@@ -5488,6 +5488,7 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Main$Alphabetical = {$: 'Alphabetical'};
 var $krisajenkins$remotedata$RemoteData$Loading = {$: 'Loading'};
+var $author$project$Main$Processed = {$: 'Processed'};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $author$project$Main$DataResponse = function (a) {
@@ -6298,6 +6299,7 @@ var $author$project$Main$init = function (_v0) {
 			dimensions: $elm$core$Result$Ok(
 				{height: 0, width: 0}),
 			domain: _Utils_Tuple2(0, 0),
+			processingMode: $author$project$Main$Processed,
 			serverData: $krisajenkins$remotedata$RemoteData$Loading,
 			sortMode: $author$project$Main$Alphabetical
 		},
@@ -6311,6 +6313,9 @@ var $author$project$Main$updateDimensions = _Platform_incomingPort('updateDimens
 var $author$project$Main$subscriptions = function (_v0) {
 	return $author$project$Main$updateDimensions($author$project$Main$OnUpdateDimensions);
 };
+var $author$project$Main$Processing = {$: 'Processing'};
+var $author$project$Main$ToProcessed = {$: 'ToProcessed'};
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $author$project$Main$Dimensions = F2(
 	function (width, height) {
 		return {height: height, width: width};
@@ -6420,7 +6425,6 @@ var $author$project$Main$getDomain = function (data) {
 										}),
 									data))))))));
 };
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$observeDimensions = _Platform_outgoingPort('observeDimensions', $elm$json$Json$Encode$string);
@@ -7645,7 +7649,11 @@ var $author$project$Main$update = F2(
 							domain: $author$project$Main$getDomain(data),
 							serverData: response
 						}),
-					$author$project$Main$observeDimensions('viz__item'));
+					$elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								$author$project$Main$observeDimensions('viz__item')
+							])));
 			case 'OnUpdateDimensions':
 				var response = msg.a;
 				return _Utils_Tuple2(
@@ -7655,14 +7663,24 @@ var $author$project$Main$update = F2(
 							dimensions: $author$project$Main$decodeDimensions(response)
 						}),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'OnSortBy':
 				var sortMode = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
+							processingMode: $author$project$Main$Processing,
 							sortMode: $author$project$Main$stringToSortMode(sortMode)
 						}),
+					A2(
+						$elm$core$Task$perform,
+						$elm$core$Basics$identity,
+						$elm$core$Task$succeed($author$project$Main$ToProcessed)));
+			default:
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{processingMode: $author$project$Main$Processed}),
 					$elm$core$Platform$Cmd$none);
 		}
 	});
@@ -14664,32 +14682,38 @@ var $author$project$Main$chart = F2(
 			model.dimensions);
 		var width = _v0.width;
 		var height = _v0.height;
-		return A2(
-			$data_viz_lab$elm_chart_builder$Chart$Line$render,
-			_Utils_Tuple2(data, $author$project$Main$accessor),
-			A2(
-				$data_viz_lab$elm_chart_builder$Chart$Line$withYDomain,
-				model.domain,
-				$data_viz_lab$elm_chart_builder$Chart$Line$hideAxis(
-					A2(
-						$data_viz_lab$elm_chart_builder$Chart$Line$withColorPalette,
-						_List_fromArray(
-							[color]),
+		var _v1 = model.processingMode;
+		if (_v1.$ === 'Processed') {
+			return A2(
+				$data_viz_lab$elm_chart_builder$Chart$Line$render,
+				_Utils_Tuple2(data, $author$project$Main$accessor),
+				A2(
+					$data_viz_lab$elm_chart_builder$Chart$Line$withYDomain,
+					model.domain,
+					$data_viz_lab$elm_chart_builder$Chart$Line$hideAxis(
 						A2(
-							$data_viz_lab$elm_chart_builder$Chart$Line$withStackedLayout,
-							$data_viz_lab$elm_chart_builder$Chart$Line$drawArea($gampleman$elm_visualization$Shape$stackOffsetSilhouette),
+							$data_viz_lab$elm_chart_builder$Chart$Line$withColorPalette,
+							_List_fromArray(
+								[color]),
 							A2(
-								$data_viz_lab$elm_chart_builder$Chart$Line$withCurve,
-								$gampleman$elm_visualization$Shape$cardinalCurve(0.5),
-								$data_viz_lab$elm_chart_builder$Chart$Line$init(
-									{
-										height: height,
-										margin: {bottom: 2, left: 2, right: 2, top: 2},
-										width: width
-									})))))));
+								$data_viz_lab$elm_chart_builder$Chart$Line$withStackedLayout,
+								$data_viz_lab$elm_chart_builder$Chart$Line$drawArea($gampleman$elm_visualization$Shape$stackOffsetSilhouette),
+								A2(
+									$data_viz_lab$elm_chart_builder$Chart$Line$withCurve,
+									$gampleman$elm_visualization$Shape$cardinalCurve(0.5),
+									$data_viz_lab$elm_chart_builder$Chart$Line$init(
+										{
+											height: height,
+											margin: {bottom: 2, left: 2, right: 2, top: 2},
+											width: width
+										})))))));
+		} else {
+			return $elm$html$Html$text('...');
+		}
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $elm$core$Debug$log = _Debug_log;
 var $author$project$Main$sortedCountries = function (model) {
 	return function (d) {
 		var _v1 = model.sortMode;
@@ -14724,6 +14748,17 @@ var $author$project$Main$sortedCountries = function (model) {
 				model.data)));
 };
 var $author$project$Main$charts = function (model) {
+	var _v0 = function () {
+		var _v1 = model.processingMode;
+		if (_v1.$ === 'Processing') {
+			return _Utils_Tuple2('viz__wrapper--processing', 'viz__item--processing');
+		} else {
+			return _Utils_Tuple2('viz__wrapper', 'viz__item');
+		}
+	}();
+	var vizWrapperClass = _v0.a;
+	var vizItemClass = _v0.b;
+	var _v2 = A2($elm$core$Debug$log, 'processingMode', model.processingMode);
 	return A2(
 		$elm$core$List$map,
 		function (country) {
@@ -14731,7 +14766,7 @@ var $author$project$Main$charts = function (model) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('viz__wrapper')
+						$elm$html$Html$Attributes$class('viz__outer-wrapper')
 					]),
 				_List_fromArray(
 					[
@@ -14755,11 +14790,20 @@ var $author$project$Main$charts = function (model) {
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('viz__item')
+								$elm$html$Html$Attributes$class(vizWrapperClass)
 							]),
 						_List_fromArray(
 							[
-								A2($author$project$Main$chart, country, model)
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class(vizItemClass)
+									]),
+								_List_fromArray(
+									[
+										A2($author$project$Main$chart, country, model)
+									]))
 							]))
 					]));
 		},
@@ -14807,8 +14851,8 @@ var $author$project$Main$footer = A2(
 		]));
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$header = _VirtualDom_node('header');
-var $author$project$Main$OnSortByUpdate = function (a) {
-	return {$: 'OnSortByUpdate', a: a};
+var $author$project$Main$OnSortBy = function (a) {
+	return {$: 'OnSortBy', a: a};
 };
 var $elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
@@ -14862,7 +14906,7 @@ var $author$project$Main$sortByView = function (model) {
 		$elm$html$Html$select,
 		_List_fromArray(
 			[
-				$elm$html$Html$Events$onInput($author$project$Main$OnSortByUpdate)
+				$elm$html$Html$Events$onInput($author$project$Main$OnSortBy)
 			]),
 		_List_fromArray(
 			[

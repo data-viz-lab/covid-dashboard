@@ -19,6 +19,7 @@ import Json.Decode as Decode
 import RemoteData exposing (RemoteData, WebData)
 import Set
 import Shape
+import Task
 import Time exposing (Posix)
 
 
@@ -40,6 +41,12 @@ type SortMode
     = Alphabetical
     | ByDeathsAsc
     | ByDeathsDesc
+
+
+type ProcessingMode
+    = Processed
+    | Processing
+    | Unprocessed
 
 
 stringToSortMode : String -> SortMode
@@ -96,6 +103,7 @@ type alias Model =
     , domain : ( Float, Float )
     , serverData : WebData String
     , sortMode : SortMode
+    , processingMode : ProcessingMode
     }
 
 
@@ -105,8 +113,9 @@ type alias Model =
 
 type Msg
     = DataResponse (WebData String)
-    | OnSortByUpdate String
+    | OnSortBy String
     | OnUpdateDimensions Decode.Value
+    | ToProcessed
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -122,14 +131,26 @@ update msg model =
                 , serverData = response
                 , domain = getDomain data
               }
-            , observeDimensions "viz__item"
+            , Cmd.batch
+                [ observeDimensions "viz__item"
+
+                --, Task.perform identity (Task.succeed ToProcessed)
+                ]
             )
 
         OnUpdateDimensions response ->
             ( { model | dimensions = decodeDimensions response }, Cmd.none )
 
-        OnSortByUpdate sortMode ->
-            ( { model | sortMode = stringToSortMode sortMode }, Cmd.none )
+        OnSortBy sortMode ->
+            ( { model
+                | sortMode = stringToSortMode sortMode
+                , processingMode = Processing
+              }
+            , Task.perform identity (Task.succeed ToProcessed)
+            )
+
+        ToProcessed ->
+            ( { model | processingMode = Processed }, Cmd.none )
 
 
 decodeDimensions : Decode.Value -> Result Decode.Error Dimensions
@@ -153,7 +174,7 @@ decodeDimensions value =
 
 sortByView : Model -> Html Msg
 sortByView model =
-    Html.select [ Html.Events.onInput OnSortByUpdate ]
+    Html.select [ Html.Events.onInput OnSortBy ]
         [ Html.option
             [ Html.Attributes.value (sortModeToString Alphabetical)
             , Html.Attributes.selected (model.sortMode == Alphabetical)
@@ -174,12 +195,25 @@ sortByView model =
 
 charts : Model -> List (Html Msg)
 charts model =
+    let
+        _ =
+            Debug.log "processingMode" model.processingMode
+
+        ( vizWrapperClass, vizItemClass ) =
+            case model.processingMode of
+                Processing ->
+                    ( "viz__wrapper--processing", "viz__item--processing" )
+
+                _ ->
+                    ( "viz__wrapper", "viz__item" )
+    in
     sortedCountries model
         |> List.map
             (\country ->
-                Html.div [ class "viz__wrapper" ]
+                Html.div [ class "viz__outer-wrapper" ]
                     [ Html.div [ class "viz__title" ] [ Html.h2 [] [ Html.text country ] ]
-                    , Html.div [ class "viz__item" ] [ chart country model ]
+                    , Html.div [ class vizWrapperClass ]
+                        [ Html.div [ class vizItemClass ] [ chart country model ] ]
                     ]
             )
 
@@ -305,18 +339,23 @@ chart country model =
                 |> Maybe.withDefault ( [], { totalDeaths = 0 } )
                 |> Tuple.first
     in
-    Line.init
-        { margin = { top = 2, right = 2, bottom = 2, left = 2 }
-        , width = width
-        , height = height
-        }
-        |> Line.withCurve (Shape.cardinalCurve 0.5)
-        |> Line.withStackedLayout (Line.drawArea Shape.stackOffsetSilhouette)
-        |> Line.withColorPalette [ color ]
-        |> Line.hideAxis
-        --|> Line.withYDomain ( -10, 10 )
-        |> Line.withYDomain model.domain
-        |> Line.render ( data, accessor )
+    case model.processingMode of
+        Processed ->
+            Line.init
+                { margin = { top = 2, right = 2, bottom = 2, left = 2 }
+                , width = width
+                , height = height
+                }
+                |> Line.withCurve (Shape.cardinalCurve 0.5)
+                |> Line.withStackedLayout (Line.drawArea Shape.stackOffsetSilhouette)
+                |> Line.withColorPalette [ color ]
+                |> Line.hideAxis
+                --|> Line.withYDomain ( -10, 10 )
+                |> Line.withYDomain model.domain
+                |> Line.render ( data, accessor )
+
+        _ ->
+            Html.text "..."
 
 
 
@@ -443,6 +482,7 @@ init () =
       , domain = ( 0, 0 )
       , serverData = RemoteData.Loading
       , sortMode = Alphabetical
+      , processingMode = Processed
       }
     , fetchData
     )

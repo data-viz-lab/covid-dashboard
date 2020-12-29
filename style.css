@@ -59,10 +59,23 @@ h2 {
   border: 1px solid #fff;
 }
 
-.viz__wrapper {
+.viz__outer-wrapper {
   position: relative;
   color: #fff;
   background-color: #1e1e1e;
+}
+
+.viz__wrapper {
+  color: #fff;
+  background-color: #1e1e1e;
+  height: 100%;
+}
+
+.viz__wrapper--processing {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 
 .viz__title {
