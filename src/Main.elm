@@ -16,6 +16,7 @@ import Html.Events
 import Http
 import Iso8601
 import Json.Decode as Decode
+import LTTB
 import RemoteData exposing (RemoteData, WebData)
 import Set
 import Shape
@@ -81,7 +82,7 @@ type alias Dimensions =
 
 type alias Datum =
     { country : String
-    , date : Posix
+    , date : Float
     , value : Float
     }
 
@@ -260,8 +261,8 @@ view model =
 
 accessor : Line.Accessor Datum
 accessor =
-    Line.time
-        (Line.AccessorTime (.country >> Just) .date .value)
+    Line.continuous
+        (Line.AccessorContinuous (.country >> Just) .date .value)
 
 
 valueFormatter : Float -> String
@@ -314,7 +315,7 @@ chart country model =
         |> Line.withStackedLayout (Line.drawArea Shape.stackOffsetSilhouette)
         |> Line.withColorPalette [ color ]
         |> Line.hideAxis
-        --|> Line.withYDomain ( -10, 10 )
+        |> Line.withoutTable
         |> Line.withYDomain model.domain
         |> Line.render ( data, accessor )
 
@@ -352,7 +353,16 @@ valueIdx =
 exclude : List String
 exclude =
     -- data outliers
-    [ "Bolivia", "Ecuador", "Peru", "San Marino", "Liechtenstein", "International" ]
+    [ "Bolivia"
+    , "Ecuador"
+    , "International"
+    , "Kyrgyzstan"
+    , "Liechtenstein"
+    , "Peru"
+    , "San Marino"
+    , "World"
+    , "Vatican"
+    ]
 
 
 prepareData : WebData String -> Dict String ( Data, Stats )
@@ -361,27 +371,43 @@ prepareData rd =
         |> RemoteData.map
             (\str ->
                 let
-                    csv =
+                    records =
                         Csv.parse str
+                            |> .records
+                            |> List.map Array.fromList
+                            |> List.map
+                                (\r ->
+                                    { date =
+                                        Array.get dateIdx r
+                                            |> Maybe.withDefault ""
+                                            |> Iso8601.toTime
+                                            |> Result.withDefault (Time.millisToPosix 0)
+                                            |> Time.posixToMillis
+                                            |> toFloat
+                                    , country =
+                                        Array.get countryIdx r
+                                            |> Maybe.withDefault ""
+                                    , value =
+                                        Array.get valueIdx r
+                                            |> Maybe.andThen String.toFloat
+                                            |> Maybe.withDefault 0
+                                    }
+                                )
+
+                    dates =
+                        records
+                            |> List.map .date
+
+                    --start =
+                    --    dates
+                    --        |> List.minimum
+                    --        |> Maybe.withDefault 0
+                    --end =
+                    --    dates
+                    --        |> List.maximum
+                    --        |> Maybe.withDefault 0
                 in
-                csv.records
-                    |> List.map Array.fromList
-                    |> List.map
-                        (\r ->
-                            { date =
-                                Array.get dateIdx r
-                                    |> Maybe.withDefault ""
-                                    |> Iso8601.toTime
-                                    |> Result.withDefault (Time.millisToPosix 0)
-                            , country =
-                                Array.get countryIdx r
-                                    |> Maybe.withDefault ""
-                            , value =
-                                Array.get valueIdx r
-                                    |> Maybe.andThen String.toFloat
-                                    |> Maybe.withDefault 0
-                            }
-                        )
+                records
                     |> List.foldl
                         (\r acc ->
                             let
@@ -396,10 +422,22 @@ prepareData rd =
                                     Dict.insert k ( [ r ], { totalDeaths = 0 } ) acc
                         )
                         Dict.empty
+                    -- this is just an overview, lets seriouly downsample the data for performance reasons
+                    |> Dict.map (\k ( v, s ) -> ( downsampleData v, s ))
                     -- only keep countries with extensive data
-                    |> Dict.filter (\k ( v, s ) -> List.length v > 200 && List.member k exclude |> not)
+                    |> Dict.filter (\k ( v, s ) -> List.length v > 50 && List.member k exclude |> not)
             )
         |> RemoteData.withDefault Dict.empty
+
+
+downsampleData : Data -> Data
+downsampleData data =
+    LTTB.downsample
+        { data = data
+        , threshold = 55
+        , xGetter = .date
+        , yGetter = .value
+        }
 
 
 maxDeaths : List { a | value : Float } -> Float
