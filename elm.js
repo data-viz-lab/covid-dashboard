@@ -14819,18 +14819,14 @@ var $elm$html$Html$Attributes$href = function (url) {
 };
 var $author$project$Main$footer = A2(
 	$elm$html$Html$footer,
-	_List_fromArray(
-		[
-			A2($elm$html$Html$Attributes$style, 'margin', '25px')
-		]),
+	_List_Nil,
 	_List_fromArray(
 		[
 			A2(
 			$elm$html$Html$a,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$href('https://github.com/owid/covid-19-data/tree/master/public/data'),
-					A2($elm$html$Html$Attributes$style, 'color', '#fff')
+					$elm$html$Html$Attributes$href('https://github.com/owid/covid-19-data/tree/master/public/data')
 				]),
 			_List_fromArray(
 				[
@@ -14841,8 +14837,7 @@ var $author$project$Main$footer = A2(
 			$elm$html$Html$a,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$href('https://github.com/data-viz-lab/covid-dashboard'),
-					A2($elm$html$Html$Attributes$style, 'color', '#fff')
+					$elm$html$Html$Attributes$href('https://github.com/data-viz-lab/covid-dashboard')
 				]),
 			_List_fromArray(
 				[

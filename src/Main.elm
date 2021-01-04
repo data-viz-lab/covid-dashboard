@@ -11,7 +11,7 @@ import Dict exposing (Dict)
 import FormatNumber
 import FormatNumber.Locales exposing (usLocale)
 import Html exposing (Html)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (class)
 import Html.Events
 import Http
 import Iso8601
@@ -188,19 +188,16 @@ charts model =
 footer : Html msg
 footer =
     Html.footer
-        [ style "margin" "25px"
-        ]
+        []
         [ Html.a
             [ Html.Attributes.href
                 "https://github.com/owid/covid-19-data/tree/master/public/data"
-            , style "color" "#fff"
             ]
             [ Html.text "Data source" ]
         , Html.text ", "
         , Html.a
             [ Html.Attributes.href
                 "https://github.com/data-viz-lab/covid-dashboard"
-            , style "color" "#fff"
             ]
             [ Html.text "Source code" ]
         ]

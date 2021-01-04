@@ -14,11 +14,14 @@ body {
   font-weight: 500;
 }
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 10px;
+footer {
+  margin: 20px 10px;
+  font-size: 14px;
+}
+
+a {
+  padding-right: 5px;
+  color: #fff;
 }
 
 select {
@@ -42,20 +45,23 @@ h2 {
 }
 
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   height: 40px;
   color: #fff;
   background-color: #1e1e1e;
+  margin: 10px;
 }
 
 .viz {
   width: calc(100% - 4px);
   height: calc(100% - 40px);
   display: grid;
-  grid-template-rows: repeat(12, 80px);
+  grid-template-rows: repeat(11, 80px);
   grid-template-columns: repeat(18, 1fr);
   grid-auto-flow: row;
   background-color: #1e1e1e;
-  border: 1px solid #fff;
 }
 
 .viz__wrapper {
