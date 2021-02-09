@@ -14,7 +14,9 @@
 </body>
 
 <script type="text/javascript">
-  var app = Elm.Main.init({node: document.getElementById("elm-node")});
+  const storedData = localStorage.getItem('covid-data');
+  const startingState = storedData ? JSON.parse(storedData) : null;
+  const app = Elm.Main.init({node: document.getElementById("elm-node"), flags: startingState});
 </script>
 <script charset="utf-8" src="ports.js"></script>
 

@@ -4697,6 +4697,10 @@ var _Parser_findSubString = F5(function(smallString, offset, row, col, bigString
 
 	return _Utils_Tuple3(newOffset, row, col);
 });
+var $elm$core$Maybe$Just = function (a) {
+	return {$: 'Just', a: a};
+};
+var $elm$core$Maybe$Nothing = {$: 'Nothing'};
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -4800,10 +4804,6 @@ var $elm$json$Json$Decode$OneOf = function (a) {
 };
 var $elm$core$Basics$False = {$: 'False'};
 var $elm$core$Basics$add = _Basics_add;
-var $elm$core$Maybe$Just = function (a) {
-	return {$: 'Just', a: a};
-};
-var $elm$core$Maybe$Nothing = {$: 'Nothing'};
 var $elm$core$String$all = _String_all;
 var $elm$core$Basics$and = _Basics_and;
 var $elm$core$Basics$append = _Utils_append;
@@ -5487,17 +5487,42 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Main$Alphabetical = {$: 'Alphabetical'};
+var $author$project$Main$Downsampled = {$: 'Downsampled'};
+var $author$project$Main$Full = {$: 'Full'};
 var $krisajenkins$remotedata$RemoteData$Loading = {$: 'Loading'};
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $author$project$Main$DataResponse = function (a) {
-	return {$: 'DataResponse', a: a};
-};
 var $elm$core$Basics$composeR = F3(
 	function (f, g, x) {
 		return g(
 			f(x));
 	});
+var $author$project$Main$Datum = F3(
+	function (country, date, value) {
+		return {country: country, date: date, value: value};
+	});
+var $elm$json$Json$Decode$decodeValue = _Json_run;
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $elm$json$Json$Decode$map3 = _Json_map3;
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Main$decodeData = function (value) {
+	return A2(
+		$elm$json$Json$Decode$decodeValue,
+		$elm$json$Json$Decode$list(
+			A4(
+				$elm$json$Json$Decode$map3,
+				$author$project$Main$Datum,
+				A2($elm$json$Json$Decode$field, 'country', $elm$json$Json$Decode$string),
+				A2($elm$json$Json$Decode$field, 'date', $elm$json$Json$Decode$float),
+				A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$float))),
+		value);
+};
+var $author$project$Main$defaultDimensions = {height: 0, width: 0, windowHeight: 0, windowWidth: 0};
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
+var $author$project$Main$DataResponse = function (a) {
+	return {$: 'DataResponse', a: a};
+};
 var $elm$http$Http$BadStatus_ = F2(
 	function (a, b) {
 		return {$: 'BadStatus_', a: a, b: b};
@@ -6291,53 +6316,6 @@ var $author$project$Main$fetchData = $elm$http$Http$get(
 			A2($elm$core$Basics$composeR, $krisajenkins$remotedata$RemoteData$fromResult, $author$project$Main$DataResponse)),
 		url: 'https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv'
 	});
-var $author$project$Main$init = function (_v0) {
-	return _Utils_Tuple2(
-		{
-			data: $elm$core$Dict$empty,
-			dimensions: $elm$core$Result$Ok(
-				{height: 0, width: 0}),
-			domain: _Utils_Tuple2(0, 0),
-			serverData: $krisajenkins$remotedata$RemoteData$Loading,
-			sortMode: $author$project$Main$Alphabetical
-		},
-		$author$project$Main$fetchData);
-};
-var $author$project$Main$OnUpdateDimensions = function (a) {
-	return {$: 'OnUpdateDimensions', a: a};
-};
-var $elm$json$Json$Decode$value = _Json_decodeValue;
-var $author$project$Main$updateDimensions = _Platform_incomingPort('updateDimensions', $elm$json$Json$Decode$value);
-var $author$project$Main$subscriptions = function (_v0) {
-	return $author$project$Main$updateDimensions($author$project$Main$OnUpdateDimensions);
-};
-var $author$project$Main$Dimensions = F2(
-	function (width, height) {
-		return {height: height, width: width};
-	});
-var $elm$json$Json$Decode$decodeValue = _Json_run;
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$float = _Json_decodeFloat;
-var $elm$json$Json$Decode$oneOf = _Json_oneOf;
-var $author$project$Main$decodeDimensions = function (value) {
-	return A2(
-		$elm$json$Json$Decode$decodeValue,
-		$elm$json$Json$Decode$oneOf(
-			_List_fromArray(
-				[
-					A3(
-					$elm$json$Json$Decode$map2,
-					$author$project$Main$Dimensions,
-					A2($elm$json$Json$Decode$field, 'height', $elm$json$Json$Decode$float),
-					A2($elm$json$Json$Decode$field, 'width', $elm$json$Json$Decode$float)),
-					A3(
-					$elm$json$Json$Decode$map2,
-					$author$project$Main$Dimensions,
-					A2($elm$json$Json$Decode$field, 'inlineSize', $elm$json$Json$Decode$float),
-					A2($elm$json$Json$Decode$field, 'blockSize', $elm$json$Json$Decode$float))
-				])),
-		value);
-};
 var $elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -6420,21 +6398,29 @@ var $author$project$Main$getDomain = function (data) {
 										}),
 									data))))))));
 };
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Main$observeDimensions = _Platform_outgoingPort('observeDimensions', $elm$json$Json$Encode$string);
-var $elm$core$Maybe$andThen = F2(
-	function (callback, maybeValue) {
-		if (maybeValue.$ === 'Just') {
-			var value = maybeValue.a;
-			return callback(value);
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
 		} else {
 			return $elm$core$Maybe$Nothing;
 		}
 	});
-var $author$project$Main$countryIdx = 2;
-var $author$project$Main$dateIdx = 3;
+var $elm$core$Result$map = F2(
+	function (func, ra) {
+		if (ra.$ === 'Ok') {
+			var a = ra.a;
+			return $elm$core$Result$Ok(
+				func(a));
+		} else {
+			var e = ra.a;
+			return $elm$core$Result$Err(e);
+		}
+	});
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Main$observeDimensions = _Platform_outgoingPort('observeDimensions', $elm$json$Json$Encode$string);
 var $RalfNorthman$elm_lttb$LTTB$Point = F2(
 	function (x, y) {
 		return {x: x, y: y};
@@ -6825,7 +6811,7 @@ var $author$project$Main$downsampleData = function (data) {
 	return $RalfNorthman$elm_lttb$LTTB$downsample(
 		{
 			data: data,
-			threshold: 55,
+			threshold: 25,
 			xGetter: function ($) {
 				return $.date;
 			},
@@ -6872,6 +6858,298 @@ var $elm$core$Dict$filter = F2(
 			$elm$core$Dict$empty,
 			dict);
 	});
+var $krisajenkins$remotedata$RemoteData$NotAsked = {$: 'NotAsked'};
+var $krisajenkins$remotedata$RemoteData$map = F2(
+	function (f, data) {
+		switch (data.$) {
+			case 'Success':
+				var value = data.a;
+				return $krisajenkins$remotedata$RemoteData$Success(
+					f(value));
+			case 'Loading':
+				return $krisajenkins$remotedata$RemoteData$Loading;
+			case 'NotAsked':
+				return $krisajenkins$remotedata$RemoteData$NotAsked;
+			default:
+				var error = data.a;
+				return $krisajenkins$remotedata$RemoteData$Failure(error);
+		}
+	});
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Main$prepareData = F2(
+	function (dataType, res) {
+		return A2(
+			$krisajenkins$remotedata$RemoteData$map,
+			function (dict) {
+				var downsample = function () {
+					if (dataType.$ === 'Full') {
+						return F2(
+							function (_v2, v) {
+								return v;
+							});
+					} else {
+						return F2(
+							function (k, _v3) {
+								var v = _v3.a;
+								var s = _v3.b;
+								return _Utils_Tuple2(
+									$author$project$Main$downsampleData(v),
+									s);
+							});
+					}
+				}();
+				return A2(
+					$elm$core$Dict$filter,
+					F2(
+						function (k, _v0) {
+							var v = _v0.a;
+							var s = _v0.b;
+							return !(($elm$core$List$length(v) > 50) && A2($elm$core$List$member, k, $author$project$Main$exclude));
+						}),
+					A2($elm$core$Dict$map, downsample, dict));
+			},
+			res);
+	});
+var $author$project$Main$maxDeaths = function (country) {
+	return A2(
+		$elm$core$Maybe$withDefault,
+		0,
+		$elm$core$List$maximum(
+			A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.value;
+				},
+				country)));
+};
+var $author$project$Main$responseDataToDict = function (res) {
+	return A2(
+		$krisajenkins$remotedata$RemoteData$map,
+		function (data) {
+			return A3(
+				$elm$core$List$foldl,
+				F2(
+					function (r, acc) {
+						var k = r.country;
+						var _v0 = A2($elm$core$Dict$get, k, acc);
+						if (_v0.$ === 'Just') {
+							var _v1 = _v0.a;
+							var d = _v1.a;
+							var s = _v1.b;
+							return A3(
+								$elm$core$Dict$insert,
+								k,
+								_Utils_Tuple2(
+									A2($elm$core$List$cons, r, d),
+									{
+										totalDeaths: $author$project$Main$maxDeaths(
+											A2($elm$core$List$cons, r, d))
+									}),
+								acc);
+						} else {
+							return A3(
+								$elm$core$Dict$insert,
+								k,
+								_Utils_Tuple2(
+									_List_fromArray(
+										[r]),
+									{totalDeaths: 0}),
+								acc);
+						}
+					}),
+				$elm$core$Dict$empty,
+				data);
+		},
+		res);
+};
+var $krisajenkins$remotedata$RemoteData$succeed = $krisajenkins$remotedata$RemoteData$Success;
+var $krisajenkins$remotedata$RemoteData$withDefault = F2(
+	function (_default, data) {
+		if (data.$ === 'Success') {
+			var x = data.a;
+			return x;
+		} else {
+			return _default;
+		}
+	});
+var $elm$core$Result$withDefault = F2(
+	function (def, result) {
+		if (result.$ === 'Ok') {
+			var a = result.a;
+			return a;
+		} else {
+			return def;
+		}
+	});
+var $author$project$Main$init = function (flags) {
+	var serverData = A2(
+		$elm$core$Maybe$withDefault,
+		$krisajenkins$remotedata$RemoteData$Loading,
+		A2(
+			$elm$core$Maybe$map,
+			A2(
+				$elm$core$Basics$composeR,
+				$author$project$Main$decodeData,
+				A2(
+					$elm$core$Basics$composeR,
+					$elm$core$Result$map($krisajenkins$remotedata$RemoteData$succeed),
+					A2(
+						$elm$core$Basics$composeR,
+						$elm$core$Result$map($author$project$Main$responseDataToDict),
+						$elm$core$Result$withDefault($krisajenkins$remotedata$RemoteData$Loading)))),
+			flags));
+	var fullData = A2(
+		$krisajenkins$remotedata$RemoteData$withDefault,
+		$elm$core$Dict$empty,
+		A2($author$project$Main$prepareData, $author$project$Main$Full, serverData));
+	var data = A2($author$project$Main$prepareData, $author$project$Main$Downsampled, serverData);
+	var domain = $author$project$Main$getDomain(
+		A2($krisajenkins$remotedata$RemoteData$withDefault, $elm$core$Dict$empty, data));
+	var cmd = function () {
+		if (serverData.$ === 'Success') {
+			return $author$project$Main$observeDimensions('.viz__item');
+		} else {
+			return $author$project$Main$fetchData;
+		}
+	}();
+	return _Utils_Tuple2(
+		{
+			data: data,
+			dimensions: $elm$core$Result$Ok($author$project$Main$defaultDimensions),
+			domain: domain,
+			fullData: fullData,
+			selectedCountry: $elm$core$Maybe$Nothing,
+			sortMode: $author$project$Main$Alphabetical
+		},
+		cmd);
+};
+var $elm$json$Json$Decode$null = _Json_decodeNull;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $author$project$Main$OnUpdateDimensions = function (a) {
+	return {$: 'OnUpdateDimensions', a: a};
+};
+var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$json$Json$Decode$value = _Json_decodeValue;
+var $author$project$Main$updateDimensions = _Platform_incomingPort('updateDimensions', $elm$json$Json$Decode$value);
+var $author$project$Main$subscriptions = function (_v0) {
+	return $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				$author$project$Main$updateDimensions($author$project$Main$OnUpdateDimensions)
+			]));
+};
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $author$project$Main$Dimensions = F4(
+	function (width, height, windowHeight, windowWidth) {
+		return {height: height, width: width, windowHeight: windowHeight, windowWidth: windowWidth};
+	});
+var $elm$json$Json$Decode$map4 = _Json_map4;
+var $author$project$Main$decodeDimensions = function (value) {
+	return A2(
+		$elm$json$Json$Decode$decodeValue,
+		$elm$json$Json$Decode$oneOf(
+			_List_fromArray(
+				[
+					A5(
+					$elm$json$Json$Decode$map4,
+					$author$project$Main$Dimensions,
+					A2($elm$json$Json$Decode$field, 'height', $elm$json$Json$Decode$float),
+					A2($elm$json$Json$Decode$field, 'width', $elm$json$Json$Decode$float),
+					A2($elm$json$Json$Decode$field, 'windowHeight', $elm$json$Json$Decode$float),
+					A2($elm$json$Json$Decode$field, 'windowWidth', $elm$json$Json$Decode$float)),
+					A5(
+					$elm$json$Json$Decode$map4,
+					$author$project$Main$Dimensions,
+					A2($elm$json$Json$Decode$field, 'inlineSize', $elm$json$Json$Decode$float),
+					A2($elm$json$Json$Decode$field, 'blockSize', $elm$json$Json$Decode$float),
+					A2($elm$json$Json$Decode$field, 'windowHeight', $elm$json$Json$Decode$float),
+					A2($elm$json$Json$Decode$field, 'windowWidth', $elm$json$Json$Decode$float))
+				])),
+		value);
+};
+var $elm$json$Json$Encode$float = _Json_wrap;
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var $author$project$Main$encodeDatum = function (_v0) {
+	var country = _v0.country;
+	var date = _v0.date;
+	var value = _v0.value;
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'country',
+				$elm$json$Json$Encode$string(country)),
+				_Utils_Tuple2(
+				'date',
+				$elm$json$Json$Encode$float(date)),
+				_Utils_Tuple2(
+				'value',
+				$elm$json$Json$Encode$float(value))
+			]));
+};
+var $elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				$elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $author$project$Main$countryIdx = 2;
+var $author$project$Main$dateIdx = 3;
 var $elm$core$Array$fromListHelp = F3(
 	function (list, nodeList, nodeListSize) {
 		fromListHelp:
@@ -6949,70 +7227,10 @@ var $elm$core$Array$get = F2(
 			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
 			A3($elm$core$Array$getHelp, startShift, index, tree)));
 	});
-var $krisajenkins$remotedata$RemoteData$NotAsked = {$: 'NotAsked'};
-var $krisajenkins$remotedata$RemoteData$map = F2(
-	function (f, data) {
-		switch (data.$) {
-			case 'Success':
-				var value = data.a;
-				return $krisajenkins$remotedata$RemoteData$Success(
-					f(value));
-			case 'Loading':
-				return $krisajenkins$remotedata$RemoteData$Loading;
-			case 'NotAsked':
-				return $krisajenkins$remotedata$RemoteData$NotAsked;
-			default:
-				var error = data.a;
-				return $krisajenkins$remotedata$RemoteData$Failure(error);
-		}
-	});
-var $author$project$Main$maxDeaths = function (country) {
-	return A2(
-		$elm$core$Maybe$withDefault,
-		0,
-		$elm$core$List$maximum(
-			A2(
-				$elm$core$List$map,
-				function ($) {
-					return $.value;
-				},
-				country)));
-};
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var $elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			$elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
-	});
 var $elm$time$Time$Posix = function (a) {
 	return {$: 'Posix', a: a};
 };
 var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
-var $elm$core$Basics$not = _Basics_not;
 var $elm$core$List$head = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -7904,121 +8122,44 @@ var $rtfeldman$elm_iso8601_date_strings$Iso8601$toTime = function (str) {
 	return A2($elm$parser$Parser$run, $rtfeldman$elm_iso8601_date_strings$Iso8601$iso8601, str);
 };
 var $author$project$Main$valueIdx = 15;
-var $krisajenkins$remotedata$RemoteData$withDefault = F2(
-	function (_default, data) {
-		if (data.$ === 'Success') {
-			var x = data.a;
-			return x;
-		} else {
-			return _default;
-		}
-	});
-var $elm$core$Result$withDefault = F2(
-	function (def, result) {
-		if (result.$ === 'Ok') {
-			var a = result.a;
-			return a;
-		} else {
-			return def;
-		}
-	});
-var $author$project$Main$prepareData = function (rd) {
+var $author$project$Main$responseToData = function (res) {
 	return A2(
-		$krisajenkins$remotedata$RemoteData$withDefault,
-		$elm$core$Dict$empty,
-		A2(
-			$krisajenkins$remotedata$RemoteData$map,
-			function (str) {
-				var records = A2(
+		$krisajenkins$remotedata$RemoteData$map,
+		function (str) {
+			return A2(
+				$elm$core$List$map,
+				function (r) {
+					return {
+						country: A2(
+							$elm$core$Maybe$withDefault,
+							'',
+							A2($elm$core$Array$get, $author$project$Main$countryIdx, r)),
+						date: $elm$time$Time$posixToMillis(
+							A2(
+								$elm$core$Result$withDefault,
+								$elm$time$Time$millisToPosix(0),
+								$rtfeldman$elm_iso8601_date_strings$Iso8601$toTime(
+									A2(
+										$elm$core$Maybe$withDefault,
+										'',
+										A2($elm$core$Array$get, $author$project$Main$dateIdx, r))))),
+						value: A2(
+							$elm$core$Maybe$withDefault,
+							0,
+							A2(
+								$elm$core$Maybe$andThen,
+								$elm$core$String$toFloat,
+								A2($elm$core$Array$get, $author$project$Main$valueIdx, r)))
+					};
+				},
+				A2(
 					$elm$core$List$map,
-					function (r) {
-						return {
-							country: A2(
-								$elm$core$Maybe$withDefault,
-								'',
-								A2($elm$core$Array$get, $author$project$Main$countryIdx, r)),
-							date: $elm$time$Time$posixToMillis(
-								A2(
-									$elm$core$Result$withDefault,
-									$elm$time$Time$millisToPosix(0),
-									$rtfeldman$elm_iso8601_date_strings$Iso8601$toTime(
-										A2(
-											$elm$core$Maybe$withDefault,
-											'',
-											A2($elm$core$Array$get, $author$project$Main$dateIdx, r))))),
-							value: A2(
-								$elm$core$Maybe$withDefault,
-								0,
-								A2(
-									$elm$core$Maybe$andThen,
-									$elm$core$String$toFloat,
-									A2($elm$core$Array$get, $author$project$Main$valueIdx, r)))
-						};
-					},
-					A2(
-						$elm$core$List$map,
-						$elm$core$Array$fromList,
-						$lovasoa$elm_csv$Csv$parse(str).records));
-				var dates = A2(
-					$elm$core$List$map,
-					function ($) {
-						return $.date;
-					},
-					records);
-				return A2(
-					$elm$core$Dict$filter,
-					F2(
-						function (k, _v3) {
-							var v = _v3.a;
-							var s = _v3.b;
-							return !(($elm$core$List$length(v) > 50) && A2($elm$core$List$member, k, $author$project$Main$exclude));
-						}),
-					A2(
-						$elm$core$Dict$map,
-						F2(
-							function (k, _v2) {
-								var v = _v2.a;
-								var s = _v2.b;
-								return _Utils_Tuple2(
-									$author$project$Main$downsampleData(v),
-									s);
-							}),
-						A3(
-							$elm$core$List$foldl,
-							F2(
-								function (r, acc) {
-									var k = r.country;
-									var _v0 = A2($elm$core$Dict$get, k, acc);
-									if (_v0.$ === 'Just') {
-										var _v1 = _v0.a;
-										var d = _v1.a;
-										var s = _v1.b;
-										return A3(
-											$elm$core$Dict$insert,
-											k,
-											_Utils_Tuple2(
-												A2($elm$core$List$cons, r, d),
-												{
-													totalDeaths: $author$project$Main$maxDeaths(
-														A2($elm$core$List$cons, r, d))
-												}),
-											acc);
-									} else {
-										return A3(
-											$elm$core$Dict$insert,
-											k,
-											_Utils_Tuple2(
-												_List_fromArray(
-													[r]),
-												{totalDeaths: 0}),
-											acc);
-									}
-								}),
-							$elm$core$Dict$empty,
-							records)));
-			},
-			rd));
+					$elm$core$Array$fromList,
+					$lovasoa$elm_csv$Csv$parse(str).records));
+		},
+		res);
 };
+var $author$project$Main$storeResponseData = _Platform_outgoingPort('storeResponseData', $elm$json$Json$Encode$string);
 var $author$project$Main$ByDeathsAsc = {$: 'ByDeathsAsc'};
 var $author$project$Main$ByDeathsDesc = {$: 'ByDeathsDesc'};
 var $author$project$Main$stringToSortMode = function (str) {
@@ -8038,16 +8179,53 @@ var $author$project$Main$update = F2(
 		switch (msg.$) {
 			case 'DataResponse':
 				var response = msg.a;
-				var data = $author$project$Main$prepareData(response);
+				var responseData = $author$project$Main$responseToData(response);
+				var serverData = $author$project$Main$responseDataToDict(responseData);
+				var toPortData = A2(
+					$krisajenkins$remotedata$RemoteData$withDefault,
+					$elm$core$Platform$Cmd$none,
+					A2(
+						$krisajenkins$remotedata$RemoteData$map,
+						A2(
+							$elm$core$Basics$composeR,
+							$elm$json$Json$Encode$list($author$project$Main$encodeDatum),
+							A2(
+								$elm$core$Basics$composeR,
+								$elm$json$Json$Encode$encode(0),
+								$author$project$Main$storeResponseData)),
+						responseData));
+				var fullData = A2(
+					$krisajenkins$remotedata$RemoteData$withDefault,
+					$elm$core$Dict$empty,
+					A2($author$project$Main$prepareData, $author$project$Main$Full, serverData));
+				var data = A2($author$project$Main$prepareData, $author$project$Main$Downsampled, serverData);
+				var domain = $author$project$Main$getDomain(
+					A2($krisajenkins$remotedata$RemoteData$withDefault, $elm$core$Dict$empty, data));
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{data: data, domain: domain, fullData: fullData}),
+					$elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								$author$project$Main$observeDimensions('.viz__item'),
+								toPortData
+							])));
+			case 'OnCountrySelect':
+				var target = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							data: data,
-							domain: $author$project$Main$getDomain(data),
-							serverData: response
+							selectedCountry: $elm$core$Maybe$Just(target)
 						}),
-					$author$project$Main$observeDimensions('viz__item'));
+					$elm$core$Platform$Cmd$none);
+			case 'OnCountryClose':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{selectedCountry: $elm$core$Maybe$Nothing}),
+					$elm$core$Platform$Cmd$none);
 			case 'OnUpdateDimensions':
 				var response = msg.a;
 				return _Utils_Tuple2(
@@ -8067,6 +8245,13 @@ var $author$project$Main$update = F2(
 						}),
 					$elm$core$Platform$Cmd$none);
 		}
+	});
+var $author$project$Main$OnCountrySelect = function (a) {
+	return {$: 'OnCountrySelect', a: a};
+};
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
 	});
 var $data_viz_lab$elm_chart_builder$Chart$Line$AccessorContinuous = F3(
 	function (xGroup, xValue, yValue) {
@@ -9482,16 +9667,6 @@ var $folkertdev$svg_path_lowlevel$Path$LowLevel$DecimalPlaces = function (a) {
 };
 var $folkertdev$svg_path_lowlevel$Path$LowLevel$decimalPlaces = $folkertdev$svg_path_lowlevel$Path$LowLevel$DecimalPlaces;
 var $folkertdev$one_true_path_experiment$SubPath$defaultConfig = {decimalPlaces: $elm$core$Maybe$Nothing, mergeAdjacent: false};
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $folkertdev$one_true_path_experiment$SubPath$optionFolder = F2(
 	function (option, config) {
 		if (option.$ === 'DecimalPlaces') {
@@ -11557,17 +11732,6 @@ var $elm$core$Result$andThen = F2(
 		} else {
 			var msg = result.a;
 			return $elm$core$Result$Err(msg);
-		}
-	});
-var $elm$core$Result$map = F2(
-	function (func, ra) {
-		if (ra.$ === 'Ok') {
-			var a = ra.a;
-			return $elm$core$Result$Ok(
-				func(a));
-		} else {
-			var e = ra.a;
-			return $elm$core$Result$Err(e);
 		}
 	});
 var $data_viz_lab$elm_chart_builder$Chart$Internal$Table$noOfComplexHeadings = function (complexHeadings) {
@@ -14693,18 +14857,9 @@ var $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setAccessibilityContent 
 	});
 var $data_viz_lab$elm_chart_builder$Chart$Line$withoutTable = $data_viz_lab$elm_chart_builder$Chart$Internal$Type$setAccessibilityContent($data_viz_lab$elm_chart_builder$Chart$Internal$Type$AccessibilityNone);
 var $author$project$Main$chart = F2(
-	function (country, model) {
-		var data = A2(
-			$elm$core$Maybe$withDefault,
-			_Utils_Tuple2(
-				_List_Nil,
-				{totalDeaths: 0}),
-			A2($elm$core$Dict$get, country, model.data)).a;
+	function (data, model) {
 		var color = A3($avh4$elm_color$Color$rgb255, 240, 59, 32);
-		var _v0 = A2(
-			$elm$core$Result$withDefault,
-			{height: 0, width: 0},
-			model.dimensions);
+		var _v0 = A2($elm$core$Result$withDefault, $author$project$Main$defaultDimensions, model.dimensions);
 		var width = _v0.width;
 		var height = _v0.height;
 		return A2(
@@ -14734,80 +14889,243 @@ var $author$project$Main$chart = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
-var $author$project$Main$sortedCountries = function (model) {
-	return function (d) {
-		var _v1 = model.sortMode;
-		switch (_v1.$) {
-			case 'Alphabetical':
-				return A2(
-					$elm$core$List$map,
-					$elm$core$Tuple$first,
-					A2($elm$core$List$sortBy, $elm$core$Tuple$first, d));
-			case 'ByDeathsAsc':
-				return A2(
-					$elm$core$List$map,
-					$elm$core$Tuple$first,
-					A2($elm$core$List$sortBy, $elm$core$Tuple$second, d));
-			default:
-				return $elm$core$List$reverse(
-					A2(
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $author$project$Main$sortedCountries = F2(
+	function (data, model) {
+		return function (d) {
+			var _v1 = model.sortMode;
+			switch (_v1.$) {
+				case 'Alphabetical':
+					return A2(
 						$elm$core$List$map,
 						$elm$core$Tuple$first,
-						A2($elm$core$List$sortBy, $elm$core$Tuple$second, d)));
-		}
-	}(
-		$elm$core$Dict$toList(
-			A2(
-				$elm$core$Dict$map,
-				F2(
-					function (k, _v0) {
-						var d = _v0.a;
-						var s = _v0.b;
-						return s.totalDeaths;
-					}),
-				model.data)));
+						A2($elm$core$List$sortBy, $elm$core$Tuple$first, d));
+				case 'ByDeathsAsc':
+					return A2(
+						$elm$core$List$map,
+						$elm$core$Tuple$first,
+						A2($elm$core$List$sortBy, $elm$core$Tuple$second, d));
+				default:
+					return $elm$core$List$reverse(
+						A2(
+							$elm$core$List$map,
+							$elm$core$Tuple$first,
+							A2($elm$core$List$sortBy, $elm$core$Tuple$second, d)));
+			}
+		}(
+			$elm$core$Dict$toList(
+				A2(
+					$elm$core$Dict$map,
+					F2(
+						function (k, _v0) {
+							var d = _v0.a;
+							var s = _v0.b;
+							return s.totalDeaths;
+						}),
+					data)));
+	});
+var $elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			$elm$core$String$join,
+			after,
+			A2($elm$core$String$split, before, string));
+	});
+var $author$project$Main$toCssClass = function (str) {
+	return A3(
+		$elm$core$String$replace,
+		' ',
+		'-',
+		$elm$core$String$toLower(str));
 };
-var $author$project$Main$charts = function (model) {
+var $author$project$Main$charts = F2(
+	function (data, model) {
+		return A2(
+			$elm$core$List$map,
+			function (country) {
+				var chartData = A2(
+					$elm$core$Maybe$withDefault,
+					_Utils_Tuple2(
+						_List_Nil,
+						{totalDeaths: 0}),
+					A2($elm$core$Dict$get, country, data)).a;
+				return A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('viz__event')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class(
+									$author$project$Main$toCssClass(country)),
+									A2(
+									$elm$html$Html$Events$on,
+									'click',
+									A2(
+										$elm$json$Json$Decode$map,
+										$author$project$Main$OnCountrySelect,
+										A2(
+											$elm$json$Json$Decode$at,
+											_List_fromArray(
+												['target', 'className']),
+											$elm$json$Json$Decode$string)))
+								]),
+							_List_Nil),
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('viz__wrapper')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$div,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('viz__title')
+										]),
+									_List_fromArray(
+										[
+											A2(
+											$elm$html$Html$h2,
+											_List_Nil,
+											_List_fromArray(
+												[
+													$elm$html$Html$text(country)
+												]))
+										])),
+									A2(
+									$elm$html$Html$div,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('viz__item')
+										]),
+									_List_fromArray(
+										[
+											A2($author$project$Main$chart, chartData, model)
+										]))
+								]))
+						]));
+			},
+			A2($author$project$Main$sortedCountries, data, model));
+	});
+var $author$project$Main$OnCountryClose = {$: 'OnCountryClose'};
+var $author$project$Main$getDetailsDimensions = function (windowDimensions) {
 	return A2(
-		$elm$core$List$map,
-		function (country) {
-			return A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('viz__wrapper')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('viz__title')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$h2,
-								_List_Nil,
-								_List_fromArray(
-									[
-										$elm$html$Html$text(country)
-									]))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('viz__item')
-							]),
-						_List_fromArray(
-							[
-								A2($author$project$Main$chart, country, model)
-							]))
-					]));
+		$elm$core$Result$map,
+		function (dim) {
+			return {height: dim.windowHeight * 0.8, width: dim.windowWidth * 0.8, windowHeight: dim.windowHeight * 0.8, windowWidth: dim.windowWidth * 0.8};
 		},
-		$author$project$Main$sortedCountries(model));
+		windowDimensions);
+};
+var $author$project$Main$chartDetails = F2(
+	function (country, model) {
+		var data = A2(
+			$elm$core$Maybe$withDefault,
+			_Utils_Tuple2(
+				_List_Nil,
+				{totalDeaths: 0}),
+			A2($elm$core$Dict$get, country, model.fullData)).a;
+		var color = A3($avh4$elm_color$Color$rgb255, 240, 59, 32);
+		var _v0 = A2(
+			$elm$core$Result$withDefault,
+			$author$project$Main$defaultDimensions,
+			$author$project$Main$getDetailsDimensions(model.dimensions));
+		var width = _v0.width;
+		var height = _v0.height;
+		return A2(
+			$data_viz_lab$elm_chart_builder$Chart$Line$render,
+			_Utils_Tuple2(data, $author$project$Main$accessor),
+			A2(
+				$data_viz_lab$elm_chart_builder$Chart$Line$withYDomain,
+				model.domain,
+				$data_viz_lab$elm_chart_builder$Chart$Line$withoutTable(
+					A2(
+						$data_viz_lab$elm_chart_builder$Chart$Line$withColorPalette,
+						_List_fromArray(
+							[color]),
+						A2(
+							$data_viz_lab$elm_chart_builder$Chart$Line$withStackedLayout,
+							$data_viz_lab$elm_chart_builder$Chart$Line$drawArea($gampleman$elm_visualization$Shape$stackOffsetSilhouette),
+							A2(
+								$data_viz_lab$elm_chart_builder$Chart$Line$withCurve,
+								$gampleman$elm_visualization$Shape$cardinalCurve(0.5),
+								$data_viz_lab$elm_chart_builder$Chart$Line$init(
+									{
+										height: height,
+										margin: {bottom: 35, left: 35, right: 10, top: 10},
+										width: width
+									})))))));
+	});
+var $author$project$Main$capitalise = function (str) {
+	return function (s) {
+		return _Utils_ap(
+			s,
+			A2($elm$core$String$dropLeft, 1, str));
+	}(
+		$elm$core$String$toUpper(
+			A2($elm$core$String$left, 1, str)));
+};
+var $author$project$Main$fromCssClass = function (str) {
+	return A2(
+		$elm$core$String$join,
+		' ',
+		A2(
+			$elm$core$List$map,
+			$author$project$Main$capitalise,
+			A2($elm$core$String$split, '-', str)));
+};
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $author$project$Main$countryDetailsView = function (model) {
+	var countryKey = $author$project$Main$fromCssClass(
+		A2($elm$core$Maybe$withDefault, '', model.selectedCountry));
+	var _v0 = model.selectedCountry;
+	if (_v0.$ === 'Just') {
+		var country = _v0.a;
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('country-details'),
+					$elm$html$Html$Events$onClick($author$project$Main$OnCountryClose)
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('country-details__forth')
+						]),
+					_List_fromArray(
+						[
+							A2($author$project$Main$chartDetails, countryKey, model)
+						]))
+				]));
+	} else {
+		return $elm$html$Html$text('');
+	}
 };
 var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$html$Html$footer = _VirtualDom_node('footer');
@@ -14855,7 +15173,6 @@ var $elm$html$Html$Events$alwaysStop = function (x) {
 var $elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
 	return {$: 'MayStopPropagation', a: a};
 };
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
 var $elm$html$Html$Events$stopPropagationOn = F2(
 	function (event, decoder) {
 		return A2(
@@ -14863,11 +15180,6 @@ var $elm$html$Html$Events$stopPropagationOn = F2(
 			event,
 			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
-var $elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
-	});
-var $elm$json$Json$Decode$string = _Json_decodeString;
 var $elm$html$Html$Events$targetValue = A2(
 	$elm$json$Json$Decode$at,
 	_List_fromArray(
@@ -14948,9 +15260,10 @@ var $author$project$Main$sortByView = function (model) {
 			]));
 };
 var $author$project$Main$view = function (model) {
-	var _v0 = model.serverData;
+	var _v0 = model.data;
 	switch (_v0.$) {
 		case 'Success':
+			var d = _v0.a;
 			return A2(
 				$elm$html$Html$div,
 				_List_fromArray(
@@ -14959,6 +15272,7 @@ var $author$project$Main$view = function (model) {
 					]),
 				_List_fromArray(
 					[
+						$author$project$Main$countryDetailsView(model),
 						A2(
 						$elm$html$Html$header,
 						_List_fromArray(
@@ -14982,7 +15296,7 @@ var $author$project$Main$view = function (model) {
 							[
 								$elm$html$Html$Attributes$class('viz')
 							]),
-						$author$project$Main$charts(model)),
+						A2($author$project$Main$charts, d, model)),
 						$author$project$Main$footer
 					]));
 		case 'Loading':
@@ -15012,4 +15326,9 @@ var $author$project$Main$view = function (model) {
 var $author$project$Main$main = $elm$browser$Browser$element(
 	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
+	$elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				$elm$json$Json$Decode$null($elm$core$Maybe$Nothing),
+				A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, $elm$json$Json$Decode$value)
+			])))(0)}});}(this));

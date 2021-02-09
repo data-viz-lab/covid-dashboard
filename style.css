@@ -64,8 +64,22 @@ h2 {
   background-color: #1e1e1e;
 }
 
-.viz__wrapper {
+.viz__event {
+  width: 100%;
+  height: 100%;
   position: relative;
+}
+
+.viz__event > div:first-child {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: 2;
+}
+
+.viz__wrapper {
+  width: 100%;
+  height: 100%;
   color: #fff;
   background-color: #1e1e1e;
   border: 0.5px solid #fff;
@@ -83,6 +97,34 @@ h2 {
 }
 
 .viz__item text {
+  fill: #fff;
+}
+
+.country-details {
+  background-color: rgb(30, 30, 30, 0.7);
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3;
+}
+
+.country-details__forth {
+  width: 80vw;
+  height: 80vh;
+  border: 2px solid #fff;
+  background-color: #1e1e1e;
+}
+
+.axis path,
+.axis line {
+  stroke: #fff;
+}
+
+.axis text {
   fill: #fff;
 }
 
