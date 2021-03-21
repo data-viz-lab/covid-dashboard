@@ -474,7 +474,7 @@ chartDetails country model =
 fetchData : Cmd Msg
 fetchData =
     Http.get
-        { url = "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv"
+        { url = "https://raw.githubusercontent.com/data-viz-lab/covid-dashboard/master/data/owid-covid-data.csv"
         , expect = Http.expectString (RemoteData.fromResult >> DataResponse)
         }
 
@@ -491,10 +491,8 @@ dateIdx =
 
 valueIdx : Int
 valueIdx =
-    -- new_deaths_smoothed
-    --9
     -- new_deaths_smoothed_per_million
-    15
+    7
 
 
 exclude : List String
